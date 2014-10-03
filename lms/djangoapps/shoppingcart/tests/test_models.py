@@ -27,7 +27,7 @@ from shoppingcart.models import (
 from student.tests.factories import UserFactory
 from student.models import CourseEnrollment
 from course_modes.models import CourseMode
-from shoppingcart.exceptions import PurchasedCallbackException
+from shoppingcart.exceptions import PurchasedCallbackException, CourseDoesNotExistException
 
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
 
@@ -597,7 +597,7 @@ class DonationTest(ModuleStoreTestCase):
 
     def test_donate_no_such_course(self):
         fake_course_id = SlashSeparatedCourseKey("edx", "fake", "course")
-        with self.assertRaises(InvalidCartItem):
+        with self.assertRaises(CourseDoesNotExistException):
             Donation.add_to_order(self.cart, self.COST, course_id=fake_course_id)
 
     def test_confirmation_email(self):

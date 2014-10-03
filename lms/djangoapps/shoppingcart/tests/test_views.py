@@ -29,7 +29,8 @@ from xmodule.modulestore.tests.factories import CourseFactory
 from shoppingcart.views import _can_download_report, _get_date_from_str
 from shoppingcart.models import (
     Order, CertificateItem, PaidCourseRegistration,
-    Coupon, CourseRegistrationCode, RegistrationCodeRedemption
+    Coupon, CourseRegistrationCode, RegistrationCodeRedemption,
+    DonationConfiguration
 )
 from student.tests.factories import UserFactory, AdminFactory
 from courseware.tests.factories import InstructorFactory
@@ -892,6 +893,11 @@ class DonationViewTest(ModuleStoreTestCase):
         result = self.client.login(username=self.user.username, password=self.PASSWORD)
         self.assertTrue(result)
 
+        # Enable donations
+        config = DonationConfiguration.current()
+        config.enabled = True
+        config.save()
+
     def test_donation_for_org(self):
         self._donate(self.DONATION_AMOUNT)
         self._assert_receipt_contains("tax deductible")
@@ -932,6 +938,21 @@ class DonationViewTest(ModuleStoreTestCase):
             reverse("donation"), {"amount": self.DONATION_AMOUNT}
         )
         self.assertEqual(response.status_code, 405)
+
+
+    def test_donations_disabled(self):
+        config = DonationConfiguration.current()
+        config.enabled = False
+        config.save()
+
+        # Logged in -- should be a 404
+        response = self.client.post(reverse('donation'))
+        self.assertEqual(response.status_code, 404)
+
+        # Logged out -- should still be a 404
+        self.client.logout()
+        response = self.client.post(reverse('donation'))
+        self.assertEqual(response.status_code, 404)
 
     def _donate(self, donation_amount, course_id=None):
         """Simulate a donation to a course.

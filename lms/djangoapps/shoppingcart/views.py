@@ -21,6 +21,7 @@ from opaque_keys.edx.locator import CourseLocator
 from opaque_keys import InvalidKeyError
 from courseware.courses import get_course_by_id
 from courseware.views import registered_for_course
+from config_models.decorators import require_config
 from shoppingcart.reports import RefundReport, ItemizedPurchaseReport, UniversityRevenueShareReport, CertificateStatusReport
 from student.models import CourseEnrollment
 from .exceptions import (
@@ -32,7 +33,7 @@ from .exceptions import (
 from .models import (
     Order, PaidCourseRegistration, OrderItem, Coupon,
     CouponRedemption, CourseRegistrationCode, RegistrationCodeRedemption,
-    Donation
+    Donation, DonationConfiguration
 )
 from .processors import (
     process_postpay_callback, render_purchase_form_html,
@@ -324,6 +325,7 @@ def register_courses(request):
     return HttpResponse(json.dumps({'response': 'success'}), content_type="application/json")
 
 
+@require_config(DonationConfiguration)
 @require_POST
 @login_required
 def donate(request):
@@ -342,6 +344,7 @@ def donate(request):
             "payment_url" (string) and "payment_params" (dictionary).  The client
             should POST the payment params to the payment URL.
         HttpResponse: 400 invalid amount or course ID.
+        HttpResponse: 404 donations are disabled.
         HttpResponse: 405 invalid request method.
 
     Example usage:

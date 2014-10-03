@@ -22,6 +22,7 @@ from model_utils.managers import InheritanceManager
 
 from xmodule.modulestore.django import modulestore
 
+from config_models.models import ConfigurationModel
 from course_modes.models import CourseMode
 from edxmako.shortcuts import render_to_string
 from student.models import CourseEnrollment, UNENROLL_DONE
@@ -868,6 +869,11 @@ class CertificateItem(OrderItem):
                 mode='verified',
                 status='purchased',
                 unit_cost__gt=(CourseMode.min_course_price_for_verified_for_currency(course_id, 'usd')))).count()
+
+
+class DonationConfiguration(ConfigurationModel):
+    """Configure whether donations are enabled on the site."""
+    pass
 
 
 class Donation(OrderItem):
